@@ -25,6 +25,7 @@ library(flexdashboard)
 library(plotly)
 library(reshape2)
 library(shiny)
+library(shinyBS)
 #library(shinyjs)
 library(vegan)
 library(viridis)
@@ -355,18 +356,40 @@ Row data {.flexcontainer}
 
 ### Overview
 
-```{r discrep_txt, echo = FALSE}
+```{r num_consults, echo = FALSE}
 #fluidPage(
-#  fluidRow(
-column(12,
-    #discrep_plot,
-    #br(),
-    p("Insert summary boxes")
-  )
+  fluidRow(
+      column(12,
+            valueBox(1000, caption = "Total # consultations", icon = NULL, color = "#005596", href = NULL)
+      ))
 
-#)
 ```
 
+
+### Formal Consults
+
+```{r formal_consults, echo = FALSE}
+#fluidPage(
+  fluidRow(
+      column(12,
+            valueBox(999, caption = "Number formal consultations", icon = NULL, color = "#e36f1e", href = NULL)
+      ))
+
+```
+
+
+### Informal Consults
+
+```{r informal_consults, echo = FALSE}
+#fluidPage(
+  fluidRow(
+      column(12,
+            valueBox(1, caption = "Number informal consultations", icon = NULL, color = "#005596", href = NULL)
+      ))
+
+```
+
+        
 Row data {.flexcontainer}
 --------
 
@@ -394,14 +417,14 @@ Row data {.flexcontainer}
 
 ```{r graph1, echo = FALSE}
 #fluidPage(
- # fluidRow(
-    column(9, spbycat_plot)
-    column(3, 
+  fluidRow(
+    column(12, spbycat_plot),
+    column(12, 
              br(),
              p("Text"),
              br()
            )
-#    )
+    )
 #  )
 #)
 ```
@@ -410,14 +433,14 @@ Row data {.flexcontainer}
 
 ```{r graph2, echo = FALSE}
 #fluidPage(
-# fluidRow(
-    column(9, spbycat_plot)
-    column(3, 
+ fluidRow(
+    column(12, spbycat_plot),
+    column(12, 
              br(),
              p("Text"),
              br()
            )
- #   )
+    )
 #  )
 #)
 ```
@@ -426,14 +449,14 @@ Row data {.flexcontainer}
 
 ```{r graph3, echo = FALSE}
 #fluidPage(
-#  fluidRow(
-    column(9, spbycat_plot)
-    column(3, 
+  fluidRow(
+    column(12, spbycat_plot),
+    column(12, 
              br(),
              p("Text"),
              br()
            )
-#    )
+    )
 #  )
 #)
 ```
