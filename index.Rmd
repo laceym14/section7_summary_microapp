@@ -22,6 +22,7 @@ library(base64enc)
 #library(cooccur)
 library(dplyr)
 library(flexdashboard)
+library(leaflet)
 library(plotly)
 library(reshape2)
 library(shiny)
@@ -401,7 +402,7 @@ Row data {.flexcontainer}
     column(9, spbycat_plot)
     column(3, 
              br(),
-             p("Text"),
+             em("Five New England states and parts of Iowa and Illinois are each covered by a single FWS office. See table for consultation counts of these groups of states."),
              br()
            )
 #    )
@@ -419,9 +420,8 @@ Row data {.flexcontainer}
 #fluidPage(
   fluidRow(
     column(12, spbycat_plot),
-    column(12, 
-             br(),
-             p("Text"),
+    column(12,
+             em("Agencies in the database may include either the federal action agency or the applicant. The plotted values are therefore lower limits to the number of consultations by federal agencies."),
              br()
            )
     )
