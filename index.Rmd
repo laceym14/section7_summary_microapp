@@ -11,7 +11,7 @@ output:
     df_print: paged
     navbar:
     - {title: "", icon: "fa-question-circle fa-lg", align: right, href: "mailto:esa@defenders.org?subject=section 7 Explorer"}
-    - {title: "", icon: "fa-github fa-lg", align: right, href: "https://github.com/laceym14"}
+    - {title: "", icon: "fa-github fa-lg", align: right, href: "https://github.com/laceym14/section7_summary_microapp"}
     - {title: "CCI", align: right, href: "https://defenders-cci.org/"}
 runtime: shiny
 ---
@@ -329,7 +329,7 @@ Intro {.sidebar data-width=400}
 ```{r intro, echo = FALSE}
 #fluidPage(
 #  fluidRow(
-p("Select your favorite state, species, work type, lead agency, and formal vs. informal consultations from drop-downs at left; graphs and maps will update automatically. You may select more than one category to filter on. For example, if you're just interested in bull trout in Idaho and for projects involving the Forest Service, then you may select each of those criteria (or any others as you see fit).")
+p("Select your desired state, species, work type, lead agency, and formal vs. informal consultations from drop-downs at left; graphs and maps will update automatically. You may select more than one category to filter on. For example, if you're just interested in bull trout in Idaho and for projects involving the Forest Service, then you may select each of those criteria (or any others as you see fit).")
 div(selectors)
 br()
 div(expand, style = "text-align: center;")
