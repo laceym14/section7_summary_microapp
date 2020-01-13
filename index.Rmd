@@ -1,0 +1,535 @@
+---
+title: "Section 7 Explorer: Summary"
+#author: "Mae Lacey"
+#date: "`r Sys.Date()`"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: columns
+    css: custom.css
+    social: menu
+    df_print: paged
+    navbar:
+    - {title: "", icon: "fa-question-circle fa-lg", align: right, href: "mailto:esa@defenders.org?subject=section 7 Explorer"}
+    - {title: "", icon: "fa-github fa-lg", align: right, href: "https://github.com/laceym14"}
+    - {title: "CCI", align: right, href: "https://defenders-cci.org/"}
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(base64enc)
+#library(cooccur)
+library(dplyr)
+library(flexdashboard)
+library(plotly)
+library(reshape2)
+library(shiny)
+#library(shinyjs)
+library(vegan)
+library(viridis)
+
+#discrepancy plot overflowing to the right
+#why is vaquita in there? what consultation is it?
+#hoverinfo for bar chart formatting
+
+good_data <- readRDS(file = 'data/appdata.rds')
+species_x_category <- readRDS(file = "data/speciesxcat.rds")
+df <- reactiveVal(good_data)
+
+taxa_choices <- c("*", unique(good_data$Common.Name))
+names(taxa_choices) <- c("All", unique(good_data$Common.Name))
+taxa_choices <- taxa_choices[taxa_choices != "*****"]
+
+cat_choices <- c("*", unique(good_data$Category))
+names(cat_choices) <- c("All", unique(good_data$Category))
+
+ag_choices <- c("*", unique(good_data$Agency))
+names(ag_choices) <- c("All", unique(good_data$Agency))
+
+#select_taxa <- selectInput('taxa', 'Taxon',
+#                           sort(taxa_choices), selected = "*")
+
+select_state <- selectInput('taxa', 'State',
+                           sort(taxa_choices), selected = "*")
+
+select_species <- selectInput('taxa', 'Species',
+                           sort(taxa_choices), selected = "*")
+
+select_category <- selectInput('category', 'Work Category',
+                               sort(cat_choices), selected = "*")
+
+select_agency <- selectInput('agency', 'Lead Agency',
+                             sort(ag_choices), selected = "*")
+
+select_consult <- selectInput('agency', 'Formal Consult?',
+                             sort(ag_choices), selected = "*")
+
+select_jeopardy <- selectInput('agency', 'Jeopardy?',
+                             sort(ag_choices), selected = "*")
+
+run_update <- actionButton('update', 'Update')
+
+expand <- actionButton("show", "Click for Details of the Consultation Process")
+
+modal <- modalDialog(
+        title = "The Consultation Process",
+        fluidRow(
+        column(6,
+               img(src = dataURI(file = "Box1.png", mime = "image/png"),
+                   alt = "Conceptual diagram of the ESA section 7 consultation process.",
+                   height = 400, width = 400)
+        ),
+        column(6,
+               p("The U.S. Endangered Species Act requires federal agencies to consult with the U.S. Fish and Wildlife Service (FWS) or National Marine Fisheries Service (NMFS) to ensure federal actions do not jeopardize the existence of species on the Endangered Species List. Federal agencies can determine on their own authority that a proposed action will have ‘no effect’ on listed species, in which case the action proceeds without involvement of the Services. If an agency determines a proposed action ‘may affect’ listed species, then either FWS or NMFS reviews whether the proposed action is “likely to adversely affect” (LAA) a species or critical habitat. This informal consultation ends if the Services determine that the proposed action will have ‘no effect’ or may affect but is “not likely to adversely affect” (NLAA) listed species or critical habitat. If the Services make an LAA determination, formal consultation is initiated. The Services then evaluate whether the proposed action will jeopardize species (i.e., appreciably reduce the species’ probability of survival) or destroy/adversely modify their critical habitat.")
+               )
+        ),
+        easyClose = TRUE,
+        size = 'l',
+        footer = NULL
+      )
+
+observeEvent(input$show,
+             {showModal(modal)})
+
+observeEvent(input$update,
+             {d <- filter(good_data,
+                          grepl(input$category, Category),
+                          grepl(input$taxa, Common.Name),
+                          grepl(input$agency, Agency)
+             )
+             df(d)
+             })
+
+discrep_plot <- plot_ly(data = filter(good_data, !is.na(Discrepancy), grepl("Formal", Type))%>%
+         group_by(Agency, Discrepancy)%>%
+         summarize(count = n(), tot = n_distinct(NMFS.Tracking.Number))%>%
+         group_by(Agency)%>%
+         mutate(freq = count/sum(count))%>%
+         filter(sum(tot) > 20)%>%
+         bind_rows(filter(good_data, !is.na(Discrepancy), grepl("Formal", Type),
+                          grepl("20[0-9][0-9]", Fiscal.Year))%>%
+                     group_by(Discrepancy)%>%
+                     summarize(count = n())%>%
+                     mutate(freq = count/sum(count), Agency = "All Agencies")),
+       type = 'bar', x = ~freq, y = ~Agency, color = ~Discrepancy,
+       #text = ~count, textposition = 'outside',
+       colors = c(plasma(12)[c(1,4,6)], 'grey', plasma(12)[c(8,10,12)]),
+       hoverinfo = 'text',
+       text = ~paste(Agency, count, round(freq, 2))
+     )%>%
+  layout(barmode = 'stack',
+         title = "Discrepancy Score",
+         titlefont = list(color = 'black'),
+         legend = list(orientation = 'h', x = 0.1, y = 1.1, traceorder = "reversed", title = 'Discrepancy'),
+         xaxis = list(title = "Proportion of Determinations",
+                      titlefont = list(color = 'black'),
+                      tickfont = list(color = 'black')),
+         yaxis = list(title = "", tickfont = list(color = 'black', size = 10)),
+         margin = list(l = 0, r = 0, t = 60, b = 50))
+
+#TimeLine
+output$time_plot <- renderPlotly({
+  plot_ly(data = filter(df(), grepl("20[0-16]", Fiscal.Year),
+                        Type == "Formal Consultation"| Type == "Informal Consultation")%>%
+                        group_by(NMFS.Tracking.Number)%>%
+          summarize(FY = first(Fiscal.Year), Type = first(Type))%>%
+          group_by(FY, Type)%>%
+          summarize(count= n()),
+        x = ~FY, y = ~count, color = ~ Type, type = 'bar', colors = rev(viridis(2)),
+        text = ~paste(count, " ", Type, "s in ", FY, sep = ""),
+        hoverinfo = 'text')%>%
+  layout(barmode = 'stack',
+         xaxis = list(title = "Fiscal Year"),
+         yaxis = list(title = "Consultations"),
+         legend = list(x = 0, y = 1.2),
+         margin = list(b = 10))
+})
+
+#Frequency of Consultations by Work Category
+text_format <- function(df){
+  max <- max(df$count, rm.na = TRUE)
+  bool <- df$count >= max * 0.75
+  textcolor <- ifelse(bool, 'white', 'black')
+  textpos <- ifelse(bool, 'inside', 'outside')
+  return(list(textcolor, textpos))
+}
+
+cat_dt <- reactive({filter(df(), grepl(".", Category), grepl("20[0-9][0-9]", Fiscal.Year))%>%
+  group_by(NMFS.Tracking.Number)%>%
+  summarize(Category = first(Category))%>%
+  group_by(Category)%>%
+  summarize(count = n())%>%
+  top_n(10, count)})
+
+cat_names <- reactiveVal(c())
+
+observeEvent(cat_dt(),
+             {cat_vec <- isolate({cat_dt()$count})
+             names(cat_vec) <- isolate({cat_dt()$Category})
+             cat_names(names(sort(cat_vec)))
+             })
+
+output$category_plot <- renderPlotly({
+  plot_ly(
+    data = cat_dt(),
+    y = ~Category,
+    x = ~count,
+    type= "bar",
+    marker = list(color = viridis(2)[1]),
+    orientation = 'h',
+    text = ~Category,
+    textposition = text_format(cat_dt())[[2]],
+    textfont = list(color = text_format(cat_dt())[[1]]),
+    hovertemplate = ~paste("%{text}"))%>%
+  layout(title = "Work Type",
+         yaxis = list(categoryorder = 'array',
+                      categoryarray = cat_names(),
+                      title = "",
+                      showticklabels = FALSE),
+         xaxis = list(title = "# of Consultations",
+                      showgrid = FALSE
+                      ),
+         margin = list(r = 10, l = 10, b = 10, t = 50)
+         )
+})
+
+#Frequency of Consultations by Agency
+ag_dt <- reactive({filter(df(), grepl(".", Agency), grepl("20[0-9][0-9]", Fiscal.Year))%>%
+  group_by(NMFS.Tracking.Number)%>%
+  summarize(Agency = first(Agency))%>%
+  group_by(Agency)%>%
+  summarize(count = n())%>%
+  top_n(10, count)})
+
+ag_names <- reactiveVal(c())
+
+observeEvent(ag_dt(),
+             {ag_vec <- isolate({ag_dt()$count})
+             names(ag_vec) <- isolate({ag_dt()$Agency})
+             ag_names(names(sort(ag_vec)))
+             })
+
+# ag_vec <- ag_dt$count
+# names(ag_vec) <- ag_dt$Agency
+
+output$agency_plot <- renderPlotly({
+  plot_ly(data = ag_dt(), y = ~Agency, x = ~count,
+          type= "bar",
+          orientation = 'h',
+          marker = list(color = viridis(2)[1]),
+        text = ~Agency,
+        textposition = text_format(ag_dt())[[2]],
+        textfont = list(color = text_format(ag_dt())[[1]]),
+        hoverinfo = 'text + x')%>%
+  layout(title = "Federal Agencies",
+         yaxis = list(categoryorder = 'array',
+                      categoryarray = ag_names(),
+                      title = "",
+                      showticklabels = FALSE),
+         xaxis = list(title = "",
+                      showgrid = FALSE),
+         margin = list(b = 10, t = 50, l = 10, r = 10)
+  )
+})
+
+#  Frequency of Consultations by Species
+sp_dt <- reactive({filter(df(), grepl(".", Common.Name), grepl("20[0-9][0-9]", Fiscal.Year))%>%
+  group_by(Common.Name)%>%
+  summarize(count = length(unique(NMFS.Tracking.Number)))%>%
+  top_n(10, count)})
+
+sp_names <- reactiveVal(c())
+
+observeEvent(sp_dt(),
+             {sp_vec <- isolate({sp_dt()$count})
+             names(sp_vec) <- isolate({sp_dt()$Common.Name})
+             sp_names(names(sort(sp_vec)))
+             })
+
+# sp_vec <- sp_dt$count
+# names(sp_vec) <- sp_dt$Common.Name
+
+output$species_plot <- renderPlotly({
+  plot_ly(data = sp_dt(), y = ~Common.Name, x = ~count,
+          type= "bar",
+          orientation = 'h',
+          marker = list(color = viridis(2)[1]),
+        text = ~Common.Name,
+        textposition = text_format(sp_dt())[[2]],
+        textfont = list(color = text_format(sp_dt())[[1]]),
+        hoverinfo = 'text + x'
+        #textposition = c('inside', rep('outside', 3), 'inside', rep('outside', 5)),
+        #textfont = list(color = c('white', rep('black', 3), 'white', rep('black', 5)), size = 14)
+        )%>%
+  layout(title = "Species",
+         titlefont = list(color = 'black', size = 16),
+         yaxis = list(categoryorder = 'array',
+                      categoryarray = sp_names(),
+                      title = "",
+                      showticklabels = FALSE),
+         xaxis = list(title = "",
+                      #range = c(0, 15000),
+                      showgrid = FALSE,
+                      tickfont = list(color = 'black', size = 12)),
+         margin = list(b = 10, t = 50, l = 10, r = 10)
+  )
+})
+
+###CREATE MATRICES AND PERMUTATION TESTS FOR SPECIES BY CATEGORY HEATMAP
+permtest <- permatfull(species_x_category, fixedmar = 'both', mtype = "count", times = 1000)
+permtests <- lapply(permtest$perm, function(i){return(i >= species_x_category)})
+permeff <- species_x_category - Reduce('+', permtest$perm)/1000
+permstats <- Reduce('+', permtests)/1000
+rownames(species_x_category)[which(rownames(species_x_category) == "Whale, killer")] <- "Whale, killer (S. resident)"
+rownames(species_x_category)[which(rownames(species_x_category) == "Whale, beluga")] <- "Whale, belgua (Cook Inlet)"
+
+spbycat_plot <- plot_ly(z = t(permeff), #species_x_category
+            y = ~colnames(species_x_category),
+            x = ~rownames(species_x_category), type = 'heatmap',
+            zmin = -5, zmax = 10,
+            colorbar = list(title = 'Difference<br>from<br>Expected',
+                            len = 0.7)
+            )%>%
+      layout(margin = list(b = 100, l = 10),
+             xaxis = list(title = "",
+                          tickfont = list(color = 'black')),
+             yaxis = list(title = "",
+                          tickfont = list(color = 'black')))
+
+selectors <-   fluidRow(
+    br(),
+    column(1),
+    column(10,
+    select_state,
+    select_species,
+    select_category,
+    select_agency,
+    select_consult,
+    select_jeopardy),
+    column(1)
+  )
+  fluidRow(
+    column(1),
+    column(10, run_update, br()),
+    #column(5, clear, br()),
+    column(1)
+  )
+
+```
+
+Overview
+=====
+
+Intro {.sidebar data-width=400}
+---
+
+### Selection Criteria
+
+```{r intro, echo = FALSE}
+#fluidPage(
+#  fluidRow(
+p("Select your favorite state, species, work type, lead agency, and formal vs. informal consultations from drop-downs at left; graphs and maps will update automatically. You may select more than one category to filter on. For example, if you're just interested in bull trout in Idaho and for projects involving the Forest Service, then you may select each of those criteria (or any others as you see fit).")
+div(selectors)
+br()
+div(expand, style = "text-align: center;")
+br()
+#div(img(src = 'dredge2.png', width = 320, height = 240,
+ #   alt = 'Dredging barge'),
+  #  p("CC-BY-SA Oleg Alexandrov"),
+   # style="text-align: center;")
+
+#    )
+#)
+
+
+```
+
+col
+--------
+
+### Overview
+
+```{r discrep_txt, echo = FALSE}
+#fluidPage(
+#  fluidRow(
+column(12,
+    #discrep_plot,
+    #br(),
+    p("Insert summary boxes")
+  )
+
+#)
+```
+
+### Consultations by State
+
+```{r matrix, echo = FALSE}
+#fluidPage(
+#  fluidRow(
+    column(9, spbycat_plot)
+    column(3, 
+             br(),
+             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             br()
+           )
+#    )
+#  )
+#)
+```
+
+### Consultations by Agency
+
+```{r graph1, echo = FALSE}
+#fluidPage(
+#  fluidRow(
+    column(9, spbycat_plot)
+    column(3, 
+             br(),
+             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             br()
+           )
+#    )
+#  )
+#)
+```
+
+### Consultations by Species (top 50)
+
+```{r graph2, echo = FALSE}
+#fluidPage(
+#  fluidRow(
+    column(9, spbycat_plot)
+    column(3, 
+             br(),
+             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             br()
+           )
+#    )
+#  )
+#)
+```
+
+### Consultations by Work Category (Top 20)
+
+```{r graph3, echo = FALSE}
+#fluidPage(
+#  fluidRow(
+    column(9, spbycat_plot)
+    column(3, 
+             br(),
+             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             br()
+           )
+#    )
+#  )
+#)
+```
+
+Explore
+========
+
+Inputs {.sidebar data-width=400}
+---
+
+### <i class="fas fa-filter"></i> Filters 
+
+```{r selectors, echo = FALSE}
+#fluidPage(
+  fluidRow(
+    br(),
+    column(1),
+    column(10,
+    select_species,
+    select_category,
+    select_agency),
+    column(1)
+  )
+  fluidRow(
+    column(1),
+    column(10, run_update, br()),
+    #column(5, clear, br()),
+    column(1)
+  )
+#)
+```
+
+col
+------
+
+### Timeline 
+
+```{r timeline, echo = FALSE}
+#fluidPage(
+    plotlyOutput("time_plot", height = "200px")
+#)
+
+```
+
+### Patterns among Agencies, Actions, and Taxa
+
+```{r generalPatterns, echo = FALSE}
+#fluidPage(
+    #splitLayout(plotlyOutput("agency_plot"),
+    #            plotlyOutput("category_plot"),
+    #            plotlyOutput("species_plot")
+    #            )
+    column(4,
+           plotlyOutput("agency_plot")
+           )
+    column(4,
+           plotlyOutput("category_plot")
+           )
+    column(4,
+           plotlyOutput("species_plot")
+    )
+#)
+```
+
+Data+
+====
+
+col 1 {data-width:250}
+-----------------------------------------------------
+
+col 2 {data-width=500}
+-----------------------------------------------------
+
+<h4>Downloads</h4>
+
+```{r download, echo = FALSE}
+downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...)  {
+     tags$a(id = outputId, class = paste("btn btn-default shiny-download-link", 
+        class), href = "", target = "_blank", download = NA, 
+        icon("download"), label, ...)
+}
+
+div(style = 'text-align: center;',
+    downloadButtonRmd("downloadConsData", "Download Consultation Data"))
+br()
+div(style = 'text-align: center;',
+    downloadButtonRmd("downloadMetadata", "Download Metadata"))
+
+output$downloadConsData <- downloadHandler(
+    filename = "gooddata.rds",
+    content = function(file) {
+      export(good_data, file)
+    } 
+  )
+
+output$downloadMetadata <- downloadHandler(
+  filename = "gooddata.yml",
+  content = function(file) {
+    export("data/gooddata.yml", file)
+  }
+)
+
+```
+
+<h4>Paper</h4>
+
+A preprint of the paper based on this data can be found on [bioarxiv](https://www.biorxiv.org/content/10.1101/424911v1). We will add a link to the peer-reviewed paper when it is available.
+
+col 3 {data-width:250}
+-----------------------------------------------------
+

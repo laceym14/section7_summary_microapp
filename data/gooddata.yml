@@ -1,0 +1,84 @@
+Dataset: gooddata.rds
+Title: Section 7 Consultation Data from National Marine Fisheries Service
+Version: 1.0
+Date: 2019-05-23
+SHA-256: caf05191b53e0d1efd3d6682e94b306cfc2a42bc7271f5a224b9aae5ce6c451d
+License: CC-BY
+Source: NMFS Public Consultation Tracking System, https://pcts.nmfs.noaa.gov/pcts-web/homepage.pcts
+URL: NA
+Authors: person(first = Michael, last = Evans, email = mevans@defenders.org,
+    role = c(aut, cre))
+Description: The National Marine Fisheries Service (NMFS) records data associated with
+    section 7 consultation process under the US Endangered Species Actrequests in the
+    Public Consultation Tracking System (PCTS) database.  This dataset contains all consultation records
+    for which determination data (Jeopardy, No Jeopardy, Adverse Modificaiton, etc.) recorded in
+    PCTS was cross-checked with determinations recorded in associated biological opinions.
+Archives:
+    figshare: NA
+    Zenodo: NA
+    OSF: doi
+Applications:
+    NMFS_s7: https://osf.io/q4ybu/
+Variables:
+    NMFS.Tracking.Number: Unique record identifier per consultation in PCTS database
+    NMFS.Final.Determination..Species.: Original determination for species recorded by NMFS
+    NMFS.Final.Determination..Critical.Habitat.: Original determination for critical habitat recorded by NMFS
+    TITLE: Consultation name
+    Consultation.Type: Type of section 7 consultation performed (e.g. Formal, Informal, Programmatic, etc.)
+    status: Completion status of consultation
+    Profile: ESA-s7 and/or Essential Fish Habitat (EFH) consultation
+    Discussion.Start.Date:
+    Date.Request.for.Consultation.Received:
+    Consultation.Initiation.Date:
+    Estimated.Response.Date:
+    NMFS.Response.Date:
+    More.Information.Requested.Below:
+    Mutually.Agreed.Extension.Date:
+    Date.of.Draft.Release.of.Biological.Opinion:
+    Lead.Federal.Action.Agency: Federal agency requesting section 7 consultation
+    Line.Office:
+    Common.Name: Name of species
+    Population.Name: Sub-population/DPS/ESU recorded in PCTS
+    Listing.Status: ESA status of species/DPS/ESU
+    Action.Agency.Proposed.Effect.Determination..Species.: Determination of effects to listed species made by federal agency
+    Action.Agency.Proposed.Effect.Determination..Critical.Habitat: Determination of effects to critical habitat made by federal agency
+    Reason.Consultation.Ended:
+    Reason.Early.Consultation.Ended:
+    NMFS.Conclusion.Regarding.Impacts.to.Fish.Habitat:
+    State: US state or territory of consultation
+    County: US county of consultation
+    Latitude:
+    Longitude:
+    Datum:
+    Activity.Location: Descriptor of location of consultation action
+    HUC_NUMBER:
+    COMMENTS: Comments from NMFS consulting biologist(s)
+    NMFS.Lead.Region: NMFS region leading consultation
+    NMFS.Office: NMFS office leading consultation
+    NMFS.Division:
+    NMFS.State.Office:
+    Branch.Team:
+    NMFS.Project.Lead:
+    Population: Sub-population/DPS/ESU cleaned and standardized
+    CH: Critical habitat effect determination cleaned and standardized
+    Sp: Species effect determination cleaned and standardized
+    CH_cons: Simplified critical habitat effect determination recorded in Biological Opinion (Adverse Modification/No Adverse Modification)
+    Spp_cons: Simplified species effect determination recorded in Biologica Opinion (Jeopardy/No Jeopardy)
+    FY.End: Year of consultation conclusion
+    FY.Start: Year of consultation initiation
+    Type: Formal, Informal, Combined, or Emergency consultation
+    Complex: Standard, programmatic, conference, or early consultation
+    Timely: Consultation concluded within 90 days as calculated from start and end date
+    Elapsed.Days: Estimated consultation duration (days)
+    Start: Date (YYYY-MM-DD) of consultation initiation
+    End: Date (YYYY-MM-DD) of consultation conclusion
+    Fiscal.Year: Year of consultation initiation
+    Agency: Federal agency requesting section 7 consultation (cleaned and standardized)
+    Category: Type of proposed action
+    SubCategory: Specific classificaiton of proposed federal actions
+    Parent: US Cabinet-level department housing federal action agency
+    Discrepancy: Orginal score [-3:3] indicating degree of disagreement between determinations proposed by federal agencies and NMFS
+Related: NA
+Depends: NA
+
+
