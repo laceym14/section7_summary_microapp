@@ -5,7 +5,7 @@ title: "Section 7 Explorer: Summary"
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: scroll
-    orientation: columns
+    orientation: rows
     css: custom.css
     social: menu
     df_print: paged
@@ -70,18 +70,23 @@ select_jeopardy <- selectInput('agency', 'Jeopardy?',
 
 run_update <- actionButton('update', 'Update')
 
-expand <- actionButton("show", "Click for Details of the Consultation Process")
+expand <- actionButton("show", "Click here for an Overview of Section 7")
 
 modal <- modalDialog(
-        title = "The Consultation Process",
+        title = "Section 7 Overview",
         fluidRow(
         column(6,
                img(src = dataURI(file = "Box1.png", mime = "image/png"),
                    alt = "Conceptual diagram of the ESA section 7 consultation process.",
-                   height = 400, width = 400)
+                   height = 450, width = 400)
         ),
         column(6,
-               p("The U.S. Endangered Species Act requires federal agencies to consult with the U.S. Fish and Wildlife Service (FWS) or National Marine Fisheries Service (NMFS) to ensure federal actions do not jeopardize the existence of species on the Endangered Species List. Federal agencies can determine on their own authority that a proposed action will have ‘no effect’ on listed species, in which case the action proceeds without involvement of the Services. If an agency determines a proposed action ‘may affect’ listed species, then either FWS or NMFS reviews whether the proposed action is “likely to adversely affect” (LAA) a species or critical habitat. This informal consultation ends if the Services determine that the proposed action will have ‘no effect’ or may affect but is “not likely to adversely affect” (NLAA) listed species or critical habitat. If the Services make an LAA determination, formal consultation is initiated. The Services then evaluate whether the proposed action will jeopardize species (i.e., appreciably reduce the species’ probability of survival) or destroy/adversely modify their critical habitat.")
+               p("In 1973 the United States Congress passed, and President Nixon signed into law, the Endangered Species Act (Act) in response to the threat of extinction for many of the nation’s species. The Act remains the premier law for preventing the extinction of imperiled species: extinction has been avoided thus far for 99% of >1600 domestic listed species (CITE). Section 7 of the Act expands the role of federal agencies in conserving listed species beyond the agencies with primary responsibility (Fish and Wildlife Service [FWS] and National Marine Fisheries Service [NMFS]):"),
+               em("Each Federal agency shall, in consultation with [FWS and NMFS], insure that any action authorized, funded, or carried out by such agency [action agency]…is not likely to jeopardize the continued existence of any endangered species or threatened species or result in the destruction or adverse modification of habitat of such species…"),
+               br(),
+               br(),
+               p("The process captured in this directive is commonly referred to as “section 7 consultation” (see diagram at left)."),
+               p("Section 7 is considered by many to be the most important section of the Act. In addition to federal agencies, many non-federal entities–including private businesses and state and local governments–actively seek a 'federal nexus' for their projects as a means of obtaining Incidental Take Permits (ITPs; see Glossary, right) for listed species. Alternative approaches to obtaining ITPs include Habitat Conservation Plans and Safe Harbor Agreements, but both of these take more time to complete than direct section 7 consultation.)")
                )
         ),
         easyClose = TRUE,
@@ -345,7 +350,7 @@ br()
 
 ```
 
-col
+Row data {.flexcontainer}
 --------
 
 ### Overview
@@ -362,6 +367,9 @@ column(12,
 #)
 ```
 
+Row data {.flexcontainer}
+--------
+
 ### Consultations by State
 
 ```{r matrix, echo = FALSE}
@@ -370,7 +378,7 @@ column(12,
     column(9, spbycat_plot)
     column(3, 
              br(),
-             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             p("Text"),
              br()
            )
 #    )
@@ -378,15 +386,19 @@ column(12,
 #)
 ```
 
+
+Row data {.flexcontainer}
+--------
+
 ### Consultations by Agency
 
 ```{r graph1, echo = FALSE}
 #fluidPage(
-#  fluidRow(
+ # fluidRow(
     column(9, spbycat_plot)
     column(3, 
              br(),
-             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             p("Text"),
              br()
            )
 #    )
@@ -398,14 +410,14 @@ column(12,
 
 ```{r graph2, echo = FALSE}
 #fluidPage(
-#  fluidRow(
+# fluidRow(
     column(9, spbycat_plot)
     column(3, 
              br(),
-             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             p("Text"),
              br()
            )
-#    )
+ #   )
 #  )
 #)
 ```
@@ -418,7 +430,7 @@ column(12,
     column(9, spbycat_plot)
     column(3, 
              br(),
-             p("Different listed species may be jeopardized by different types of proposed actions.  This heatmap illustrates which combinations of work types and species resulted in more (yellow) or fewer (purple) jeopardy determinations than would be expected by random chance."),
+             p("Text"),
              br()
            )
 #    )
@@ -454,7 +466,7 @@ Inputs {.sidebar data-width=400}
 #)
 ```
 
-col
+row
 ------
 
 ### Timeline 
@@ -465,6 +477,9 @@ col
 #)
 
 ```
+
+row
+------
 
 ### Patterns among Agencies, Actions, and Taxa
 
@@ -489,11 +504,6 @@ col
 Data+
 ====
 
-col 1 {data-width:250}
------------------------------------------------------
-
-col 2 {data-width=500}
------------------------------------------------------
 
 <h4>Downloads</h4>
 

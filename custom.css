@@ -51,6 +51,11 @@ a:visited {
   border: 0 solid transparent;
 }
 
+.flexcontainer {
+  display: flex;
+  flex-direction: row;
+}
+
 .shiny-input-panel {
   background-color: #f2f2f2;
   border: 0 solid transparent;
