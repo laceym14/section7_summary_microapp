@@ -40,7 +40,9 @@ library(viridis)
 # Section 7 Explorer data import and prep
 ###########################################################
 
-load("data/FWS_S7_clean_21Mar2017.rda")
+load("data/FWS_S7_clean_21Mar2017.rda")      # Need to figure out issue with full
+# load("data/FWS_S7_clean_22May2018.rda")
+# full <- load("data/FWS_S7_clean_21Mar2017.rda")
 
 full$work_category <- as.factor(full$work_category)
 full$lead_agency <- as.factor(full$lead_agency)
@@ -112,7 +114,7 @@ ag_choices <- c("*", unique(good_data$Agency))
 names(ag_choices) <- c("All", unique(good_data$Agency))
 
 
-#########################################################################
+######################################################################### 
 
 
 #select_taxa <- selectInput('taxa', 'Taxon',
