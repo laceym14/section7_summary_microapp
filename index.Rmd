@@ -23,6 +23,7 @@ library(base64enc)
 library(dplyr)
 library(flexdashboard)
 library(leaflet)
+library(maptools)
 library(plotly)
 library(reshape2)
 library(shiny)
@@ -34,6 +35,67 @@ library(viridis)
 #discrepancy plot overflowing to the right
 #why is vaquita in there? what consultation is it?
 #hoverinfo for bar chart formatting
+
+###########################################################
+# Section 7 Explorer data import and prep
+###########################################################
+
+load("data/FWS_S7_clean_21Mar2017.rda")
+
+full$work_category <- as.factor(full$work_category)
+full$lead_agency <- as.factor(full$lead_agency)
+full$ESOffice <- as.factor(full$ESOffice)
+full$region <- as.factor(full$region)
+full$FY <- as.factor(full$FY)
+full$consult_type <- as.factor(full$consult_type)
+full$consult_complex <- as.factor(full$consult_complex)
+
+# To facilitate adding new data, generate the vectors from the data
+regions <- c("All", levels(full$region))
+ESOs <- c("All", levels(full$ESOffice))
+years <- as.numeric(levels(full$FY))
+cons_types <- c("All", levels(full$consult_type))
+cons_complx <- c("All", levels(full$consult_complex))
+
+agencies <- c("*", levels(full$lead_agency))
+names(agencies) <- c("All", levels(full$lead_agency))
+
+work_cats <- c("*", levels(full$work_category))
+names(work_cats) <- c("All", levels(full$work_category))
+
+formal_cons_choice <- c("All", "Yes", "No")
+
+jeopardy_choice <- c("All", "Yes", "No")
+
+states <- c("All", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DE", "FL", "GA",
+             "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
+             "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM",
+             "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX",
+             "UT", "VA", "VT", "WA", "WI", "WV", "WY")
+#states <- as.data.frame(states)
+#states <- c("*", levels(states))
+#names(states) <- c("All", levels(states))
+
+species <- c("*", as.character(levels(as.factor(unlist(unlist(full$spp_ev_ls))))))
+names(species)<- c("All", as.character(levels(as.factor(unlist(unlist(full$spp_ev_ls))))))
+
+sp_look_f <- "data/jeop_admod_spp_table_02May2016.tsv"
+sp_ja_dat <- read.table(sp_look_f, sep="\t", header=T)
+
+# data for ESFO-level map
+eso_geo_fil <- "data/fieldOfficesTAILS.shp"
+eso_geo_dat <- readShapePoly(eso_geo_fil,
+                             proj4string = CRS("+proj=merc +lon_0=90w"))
+
+extent <- as.vector(bbox(eso_geo_dat))
+xmin <- extent[1]
+ymin <- extent[2]
+xmax <- extent[3]
+ymax <- extent[4]
+
+
+
+######################################################################## NMFS app data import
 
 good_data <- readRDS(file = 'data/appdata.rds')
 species_x_category <- readRDS(file = "data/speciesxcat.rds")
@@ -49,26 +111,30 @@ names(cat_choices) <- c("All", unique(good_data$Category))
 ag_choices <- c("*", unique(good_data$Agency))
 names(ag_choices) <- c("All", unique(good_data$Agency))
 
+
+#########################################################################
+
+
 #select_taxa <- selectInput('taxa', 'Taxon',
 #                           sort(taxa_choices), selected = "*")
 
-select_state <- selectInput('taxa', 'State',
-                           sort(taxa_choices), selected = "*")
+select_state <- selectInput('state', 'State',
+                           sort(states), selected = "*")
 
 select_species <- selectInput('taxa', 'Species',
-                           sort(taxa_choices), selected = "*")
+                           sort(species), selected = "*")
 
 select_category <- selectInput('category', 'Work Category',
-                               sort(cat_choices), selected = "*")
+                               sort(work_cats), selected = "*")
 
 select_agency <- selectInput('agency', 'Lead Agency',
-                             sort(ag_choices), selected = "*")
+                             sort(agencies), selected = "*")
 
 select_consult <- selectInput('agency', 'Formal Consult?',
-                             sort(ag_choices), selected = "*")
+                             sort(formal_cons_choice), selected = "*")
 
 select_jeopardy <- selectInput('agency', 'Jeopardy?',
-                             sort(ag_choices), selected = "*")
+                             sort(jeopardy_choice), selected = "*")
 
 run_update <- actionButton('update', 'Update')
 
@@ -134,6 +200,16 @@ discrep_plot <- plot_ly(data = filter(good_data, !is.na(Discrepancy), grepl("For
                       tickfont = list(color = 'black')),
          yaxis = list(title = "", tickfont = list(color = 'black', size = 10)),
          margin = list(l = 0, r = 0, t = 60, b = 50))
+
+# Map
+
+output$states_map <- renderLeaflet({
+  leaflet(eso_geo_dat) %>%
+    addTiles() %>%
+    setView(lng = -87.251475, lat=39.835402,zoom=4)
+})
+
+
 
 #TimeLine
 output$time_plot <- renderPlotly({
@@ -396,16 +472,16 @@ Row data {.flexcontainer}
 
 ### Consultations by State
 
-```{r matrix, echo = FALSE}
+```{r map, echo = FALSE}
 #fluidPage(
-#  fluidRow(
-    column(9, spbycat_plot)
+  fluidRow(
+    column(9, leafletOutput("states_map", height="200px", width = "100%")),
     column(3, 
              br(),
              em("Five New England states and parts of Iowa and Illinois are each covered by a single FWS office. See table for consultation counts of these groups of states."),
              br()
            )
-#    )
+    )
 #  )
 #)
 ```
