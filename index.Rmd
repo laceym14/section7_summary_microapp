@@ -40,30 +40,31 @@ library(viridis)
 # Section 7 Explorer data import and prep
 ###########################################################
 
-load("data/FWS_S7_clean_21Mar2017.rda")      # Need to figure out issue with full
-# load("data/FWS_S7_clean_22May2018.rda")
+#load("data/FWS_S7_clean_21Mar2017.rda")      # Need to figure out issue with full
+load("data/FWS_S7_clean_22May2018.rda")
+#load("data/FWS_S7_clean_22May2018.RDS")
 # full <- load("data/FWS_S7_clean_21Mar2017.rda")
 
-full$work_category <- as.factor(full$work_category)
-full$lead_agency <- as.factor(full$lead_agency)
-full$ESOffice <- as.factor(full$ESOffice)
-full$region <- as.factor(full$region)
-full$FY <- as.factor(full$FY)
-full$consult_type <- as.factor(full$consult_type)
-full$consult_complex <- as.factor(full$consult_complex)
+d$work_category <- as.factor(d$work_category)
+d$lead_agency <- as.factor(d$lead_agency)
+d$ESOffice <- as.factor(d$ESOffice)
+d$region <- as.factor(d$region)
+d$FY <- as.factor(d$FY)
+d$consult_type <- as.factor(d$consult_type)
+d$consult_complex <- as.factor(d$consult_complex)
 
 # To facilitate adding new data, generate the vectors from the data
-regions <- c("All", levels(full$region))
-ESOs <- c("All", levels(full$ESOffice))
-years <- as.numeric(levels(full$FY))
-cons_types <- c("All", levels(full$consult_type))
-cons_complx <- c("All", levels(full$consult_complex))
+regions <- c("All", levels(d$region))
+ESOs <- c("All", levels(d$ESOffice))
+years <- as.numeric(levels(d$FY))
+cons_types <- c("All", levels(d$consult_type))
+cons_complx <- c("All", levels(d$consult_complex))
 
-agencies <- c("*", levels(full$lead_agency))
-names(agencies) <- c("All", levels(full$lead_agency))
+agencies <- c("*", levels(d$lead_agency))
+names(agencies) <- c("All", levels(d$lead_agency))
 
-work_cats <- c("*", levels(full$work_category))
-names(work_cats) <- c("All", levels(full$work_category))
+work_cats <- c("*", levels(d$work_category))
+names(work_cats) <- c("All", levels(d$work_category))
 
 formal_cons_choice <- c("All", "Yes", "No")
 
@@ -78,8 +79,8 @@ states <- c("All", "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DE", "FL", "GA",
 #states <- c("*", levels(states))
 #names(states) <- c("All", levels(states))
 
-species <- c("*", as.character(levels(as.factor(unlist(unlist(full$spp_ev_ls))))))
-names(species)<- c("All", as.character(levels(as.factor(unlist(unlist(full$spp_ev_ls))))))
+species <- c("*", as.character(levels(as.factor(unlist(unlist(d$spp_ev_ls))))))
+names(species)<- c("All", as.character(levels(as.factor(unlist(unlist(d$spp_ev_ls))))))
 
 sp_look_f <- "data/jeop_admod_spp_table_02May2016.tsv"
 sp_ja_dat <- read.table(sp_look_f, sep="\t", header=T)
@@ -477,7 +478,7 @@ Row data {.flexcontainer}
 ```{r map, echo = FALSE}
 #fluidPage(
   fluidRow(
-    column(9, leafletOutput("states_map", height="200px", width = "100%")),
+    column(9, leafletOutput("states_map")),
     column(3, 
              br(),
              em("Five New England states and parts of Iowa and Illinois are each covered by a single FWS office. See table for consultation counts of these groups of states."),
@@ -497,7 +498,7 @@ Row data {.flexcontainer}
 ```{r graph1, echo = FALSE}
 #fluidPage(
   fluidRow(
-    column(12, spbycat_plot),
+    column(12, plotlyOutput("agency_plot")),
     column(12,
              em("Agencies in the database may include either the federal action agency or the applicant. The plotted values are therefore lower limits to the number of consultations by federal agencies."),
              br()
@@ -512,7 +513,7 @@ Row data {.flexcontainer}
 ```{r graph2, echo = FALSE}
 #fluidPage(
  fluidRow(
-    column(12, spbycat_plot),
+    column(12, plotlyOutput("species_plot")),
     column(12, 
              br(),
              p("Text"),
@@ -528,7 +529,7 @@ Row data {.flexcontainer}
 ```{r graph3, echo = FALSE}
 #fluidPage(
   fluidRow(
-    column(12, spbycat_plot),
+    column(12, plotlyOutput("category_plot")),
     column(12, 
              br(),
              p("Text"),
